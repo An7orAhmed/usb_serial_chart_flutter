@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
 
     port?.inputStream?.listen((Uint8List data) {
       received = utf8.decode(data).replaceFirst("\r\n", "");
-      setState(() => updateGraph(double.parse(received)));
+      updateGraph(double.parse(received));
     });
   }
 
