@@ -31,6 +31,7 @@ class _MyAppState extends State<MyApp> {
 
   void updateUI() {
     if (plotData.length <= windowSize) return;
+    if (startIndex > plotData.length - windowSize) return;
     plotToShow.clear();
     plotToShow.addAll(plotData.getRange(startIndex, startIndex + windowSize));
     startIndex++;
