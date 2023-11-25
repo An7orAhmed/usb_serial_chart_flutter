@@ -22,23 +22,29 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  int x = 0, count = 0;
-  int limitCount = 50;
+  int startIndex = 0;
+  int xAxis = 0;
+  int windowSize = 100;
   final plotData = <FlSpot>[];
+  final plotToShow = <FlSpot>[];
   String received = "";
 
-  void updateGraph(double value) {
-    plotData.add(FlSpot(x.toDouble(), value));
-    x += 2; // 2ms
-    count++;
-    // update UI
-    if (count > limitCount * 3) {
-      while (plotData.length > limitCount) {
-        plotData.removeAt(0);
-      }
-      count = 0;
-      setState(() {});
+  void updateUI() {
+    if (plotData.length <= windowSize) return;
+    plotToShow.clear();
+    plotToShow.addAll(plotData.getRange(startIndex, startIndex + windowSize));
+    startIndex++;
+    // clear some data from main list
+    if (startIndex > windowSize) {
+      plotData.removeRange(0, windowSize);
+      startIndex = 0;
     }
+    setState(() {});
+  }
+
+  void updateGraph(double value) {
+    plotData.add(FlSpot(xAxis.toDouble(), value));
+    xAxis += 2; // 2ms
   }
 
   void checkUSB() async {
@@ -75,7 +81,9 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     checkUSB();
     // for testing
-    //Timer.periodic(const Duration(milliseconds: 2), (timer) => updateGraph(Random().nextInt(500) / 100));
+    Timer.periodic(const Duration(milliseconds: 2), (timer) => updateGraph(Random().nextInt(500) / 100));
+    // UI updater
+    Timer.periodic(const Duration(milliseconds: 100), (timer) => updateUI());
     super.initState();
   }
 
@@ -97,9 +105,9 @@ class _MyAppState extends State<MyApp> {
                     LineChartData(
                       minY: 0,
                       maxY: 5,
-                      minX: plotData.isNotEmpty ? plotData.first.x : 0,
-                      maxX: plotData.isNotEmpty ? plotData.last.x : 0,
-                      lineBarsData: [LineChartBarData(spots: plotData, isCurved: true, dotData: const FlDotData(show: false))],
+                      minX: plotToShow.isNotEmpty ? plotToShow.first.x : 0,
+                      maxX: plotToShow.isNotEmpty ? plotToShow.last.x : 0,
+                      lineBarsData: [LineChartBarData(spots: plotToShow, isCurved: true, dotData: const FlDotData(show: false))],
                       borderData: FlBorderData(
                         show: true,
                         border: const Border(left: BorderSide(), bottom: BorderSide()),
@@ -123,6 +131,7 @@ class _MyAppState extends State<MyApp> {
                         ),
                       ),
                     ),
+                    duration: const Duration(milliseconds: 0),
                   ),
                 ),
                 Card(
