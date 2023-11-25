@@ -7,5 +7,5 @@ void setup() {
 void loop() {
   float volt = random(0, 500) / 100.0;
   Serial.println(volt);
-  delay(500);
+  delay(2);
 }

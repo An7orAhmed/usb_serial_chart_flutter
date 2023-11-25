@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:usb_serial/usb_serial.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+  ]);
   runApp(const MyApp());
 }
 
@@ -16,19 +22,23 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  int x = 0;
-  final limitCount = 10;
+  int x = 0, count = 0;
+  int limitCount = 50;
   final plotData = <FlSpot>[];
   String received = "";
 
-  void updateGraph(String value) {
-    while (plotData.length > limitCount) {
-      plotData.removeAt(0);
+  void updateGraph(double value) {
+    plotData.add(FlSpot(x.toDouble(), value));
+    x += 2; // 2ms
+    count++;
+    // update UI
+    if (count > limitCount * 3) {
+      while (plotData.length > limitCount) {
+        plotData.removeAt(0);
+      }
+      count = 0;
+      setState(() {});
     }
-    setState(() {
-      plotData.add(FlSpot(x.toDouble(), double.parse(value)));
-      x += 500; // 500ms
-    });
   }
 
   void checkUSB() async {
@@ -41,7 +51,7 @@ class _MyAppState extends State<MyApp> {
 
     port?.inputStream?.listen((Uint8List data) {
       received = utf8.decode(data).replaceFirst("\r\n", "");
-      setState(() => updateGraph(received));
+      setState(() => updateGraph(double.parse(received)));
     });
   }
 
@@ -50,7 +60,7 @@ class _MyAppState extends State<MyApp> {
       axisSide: meta.axisSide,
       space: 5,
       angle: 4.71239,
-      child: Text("${value.toInt() / 1000}"),
+      child: Text((value.toInt() / 1000).toStringAsFixed(1)),
     );
   }
 
@@ -64,6 +74,8 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     checkUSB();
+    // for testing
+    //Timer.periodic(const Duration(milliseconds: 2), (timer) => updateGraph(Random().nextInt(500) / 100));
     super.initState();
   }
 
@@ -87,9 +99,7 @@ class _MyAppState extends State<MyApp> {
                       maxY: 5,
                       minX: plotData.isNotEmpty ? plotData.first.x : 0,
                       maxX: plotData.isNotEmpty ? plotData.last.x : 0,
-                      lineTouchData: const LineTouchData(enabled: false),
-                      clipData: const FlClipData.all(),
-                      lineBarsData: [LineChartBarData(spots: plotData)],
+                      lineBarsData: [LineChartBarData(spots: plotData, isCurved: true, dotData: const FlDotData(show: false))],
                       borderData: FlBorderData(
                         show: true,
                         border: const Border(left: BorderSide(), bottom: BorderSide()),
@@ -103,22 +113,13 @@ class _MyAppState extends State<MyApp> {
                           sideTitles: SideTitles(showTitles: false),
                         ),
                         bottomTitles: AxisTitles(
-                          axisNameWidget: const Text('Time [sec]'),
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 35,
-                            getTitlesWidget: bottomTitleWidgets,
-                          ),
+                          axisNameWidget: const Text('Time[sec]'),
+                          sideTitles: SideTitles(showTitles: true, reservedSize: 35, getTitlesWidget: bottomTitleWidgets),
                         ),
                         leftTitles: AxisTitles(
                           axisNameSize: 20,
                           axisNameWidget: const Text('Voltage'),
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: 1,
-                            reservedSize: 40,
-                            getTitlesWidget: leftTitleWidgets,
-                          ),
+                          sideTitles: SideTitles(showTitles: true, reservedSize: 40, getTitlesWidget: leftTitleWidgets),
                         ),
                       ),
                     ),
@@ -130,7 +131,7 @@ class _MyAppState extends State<MyApp> {
                     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                     child: Text("Serial Read: $received"),
                   ),
-                )
+                ),
               ],
             ),
           ),
