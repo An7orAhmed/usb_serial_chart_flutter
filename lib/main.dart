@@ -87,11 +87,11 @@ class _MyAppState extends State<MyApp> {
     checkUSB();
 
     // for testing
-    Timer.periodic(const Duration(milliseconds: 2), (timer) {
-      updateGraph(demoVal / 100);
-      demoVal++;
-      if (demoVal >= 500) demoVal = 0;
-    });
+    // Timer.periodic(const Duration(milliseconds: 2), (timer) {
+    //   updateGraph(demoVal / 100);
+    //   demoVal++;
+    //   if (demoVal >= 500) demoVal = 0;
+    // });
 
     // UI updater
     Timer.periodic(const Duration(milliseconds: 2), (timer) => updateUI());
