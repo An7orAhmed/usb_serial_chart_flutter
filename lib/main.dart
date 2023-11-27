@@ -53,12 +53,12 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     checkUSB();
 
-    // for testing
-    Timer.periodic(const Duration(milliseconds: 2), (timer) {
-      updateGraph(demoVal / 100);
-      demoVal++;
-      if (demoVal >= 500) demoVal = 0;
-    });
+    // for testing demo data
+    // Timer.periodic(const Duration(milliseconds: 2), (timer) {
+    //   updateGraph(demoVal / 100);
+    //   demoVal++;
+    //   if (demoVal >= 500) demoVal = 0;
+    // });
 
     super.initState();
   }
