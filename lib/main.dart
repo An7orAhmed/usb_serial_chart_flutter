@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,15 +23,20 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   int startIndex = 0;
   int xAxis = 0;
-  int windowSize = 100;
+  int windowSize = 2000;
   final plotData = <FlSpot>[];
   final plotToShow = <FlSpot>[];
   String received = "";
+  int demoVal = 0;
 
   void updateUI() {
-    if (plotData.length <= windowSize) return;
-    if (startIndex > plotData.length - windowSize) return;
     plotToShow.clear();
+    if (plotData.length <= windowSize) {
+      plotToShow.addAll(plotData);
+      setState(() {});
+      return;
+    }
+    if (startIndex > plotData.length - windowSize) return;
     plotToShow.addAll(plotData.getRange(startIndex, startIndex + windowSize));
     startIndex++;
     // clear some data from main list
@@ -81,10 +85,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     checkUSB();
+
     // for testing
-    //Timer.periodic(const Duration(milliseconds: 2), (timer) => updateGraph(Random().nextInt(500) / 100));
+    Timer.periodic(const Duration(milliseconds: 2), (timer) {
+      updateGraph(demoVal / 100);
+      demoVal++;
+      if (demoVal >= 500) demoVal = 0;
+    });
+
     // UI updater
-    Timer.periodic(const Duration(milliseconds: 100), (timer) => updateUI());
+    Timer.periodic(const Duration(milliseconds: 2), (timer) => updateUI());
     super.initState();
   }
 
